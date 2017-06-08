@@ -1,0 +1,295 @@
+環境構築について
+
+1.インストール
+	1-1.virtual box
+		#使用しているPC上に仮想的なPCを作成し、別のOSをインストール・実行できるフリーのPC仮想化ソフト
+			→複数人の開発者が関わるプロジェクトなどテキストを作成した環境と全く同じ環境で開発ができる
+		#用語
+			→ホスト=virtualboxをインストールした側
+			→ゲスト=virtualboxで作成した側	
+	1-2.vagrant
+		#仮想環境を簡単に構築・管理し、配布することができるツール 
+		#仮想環境の設定がすべてVagrantfileという設定ファイルに記述
+			→同じ環境を構築する場合は同Vagrantfileを使って、vagrantで仮想環境を起動すると同一環境が手に入る
+		#Vagrant自体には仮想下に関する機能は搭載されていないので、別途VirtualBoxのような仮想化ソフトが必要
+
+2.vagrant設定
+	2-1.vagrantのバージョン確認@コマンドライン
+		$ vagrant -v
+	2-2.作業用のディレクトリ作成
+		$　mkdir {ファイル名}
+	2-3.box追加
+		2-3-1.追加したいOSの策定
+			･https://atlas.hashicorp.com/boxes/search?utm_source=vagrantcloud.com&vagrantcloud=1
+			でexternalの部分をコピー
+		2-3-2.box追加@コマンドライン	
+			$　vagrant box add　{external}
+		2-3-3.box一覧確認@コマンドライン
+			$ vagrant box list
+	2-4.vagrantfile作成(初期化)
+		2-4-1.初期化　
+			$ vagrant init {box name}
+			･カレントディレクトリにvagrantfileができる
+		2-4-2.vagrant fileの編集
+			･マシンのBoxが何であるかを設定
+				→config.vm.box　:値　=Boxの名前、HashiCorpのAtlas内にあるBoxの省略
+			･マシンのネットワーク設定
+				→ポートの転送(config.vm.network　:forwarded_port)
+					#TCPかUDPのいずれかを経由して、ホスト上のポートにアクセス、ゲスト上のポートへデータを転送可能
+					例:config.vm.network "forwarded_port", guest: 80, host: 8080
+						→ホスト上の8080ポートを介してゲスト上の80ポートへアクセスすることができる。
+							#guest (整数値) :ホスト上に公開したいゲスト上のポート。これはいずれのポートでも可
+							#host (整数値) :ゲスト上のポートへアクセスする為に使用する、ホスト上のポート
+				→プライベート・ネットワーク(config.vm.network：private_network)
+					#Vagrantのプライベート・ネットワークは、グローバルなインターネットからアクセスできる公のものではない
+					#いくつかのアドレスによってゲスト・マシンにアクセスすることができるようにする
+					#一般的には、これはプライベート・アドレス空間内でマシンがアドレスを得る
+					例:  config.vm.network "private_network", ip: "192.168.50.4"
+				→パブリック・ネットワーク(config.vm.network:public_network)
+					#プライベートネットワークは一般的なパブリックアクセスをマシンに対して許さないが、パブリックネットワークは可
+			･マシン上の同期フォルダを設定
+				→ホスト・マシン上のフォルダとゲスト・マシンとの同期を可能
+					例:config.vm.synced_folder　"src/", "/srv/website"
+						#はじめの引数はホスト・マシン上のディレクトリへのパス
+							※パスが相対パスであれば、プロジェクト・ルートからの相対パスとなる
+						#2つ目のパラメータは、ゲスト・マシンで共有するフォルダの位置を示す絶対パス
+
+				config.vm.synced_folder　
+			･config.vm.provision　#マシン上のプロビジョナを設定。マシンが生成された時、ソフトウェアを自動インスト、設定
+				→Shellプロビジョナは、ゲスト・マシンにスクリプトをアップロードまたは実行できる
+					※｢シェル｣:ユーザからのコマンド入力を受け取りコマンドを実行するためのプログラム。コマンド入力をテキストファイルに保存することで、保存された一連の操作を実行可能
+					※「シェルスクリプト」:テキストに書かれたコマンド群
+
+	2-5.仮想マシンを起動@vagrantfileの作成されたディレクトリ
+		$ vagrant up
+		#VirtualBoxのVMが起動
+	2-6.ssh接続
+		$　vagrant ssh
+		※windowsはコマンドがきかないので、PODELOSAなどから接続する
+
+3.PHP,apache,mysqlの設定
+	3-1.phpのインストール
+		$ sudo yum install php
+	3-2.apacheのインストール
+		$ sudo yum install httpd
+	3-3.httpd.confの編集
+		$ sudo vim /etc/httpd/conf/httpd.conf
+			･ServerRoot
+				#Apache をインストールした場所のパスが指定されており、このディレクトリ以下に conf や logs などのサブディレクトリが格納。ServerRootからの相対パスで記述されている事が多いため、通常は、デフォルトのまま
+			･Listen　{ポート番号}
+				#Listen では、特定の IP アドレスやポート番号だけをlistenすることができるので複数のポート番号を指定したり、IPアドレスとポート番号共に指定する事で、 指定されたポートとインターフェースに対して listen させることができます
+				#VirtualHostを実装する場合は、ここで指定した以外のポート番号は使用する事ができない
+				#あくまで、Listenで指定した範囲内で<VirtualHost>に指定する
+			･ServerName
+				#ServerNameディレクティブはApacheサーバが自分自身のホスト名を示す時に使われる名前を指定
+				例:ServerName ホスト名[:ポート番号]
+			･Include
+				#他に用意された設定ファイルを取り込む
+				例:Include ファイル名　　例:Include conf.d/*.conf
+			･User
+				#サーバがリクエストに応答する際に用いるユーザIDを設定する。(User unix-userid)
+			･Group
+				#リクエストに応答する際に所属するグループを設定
+			･DocumentRoot
+				#ウェブから見えるメインのドキュメントツリーになるディレクトリを設定
+			･<Directory>
+				#指定のファイルシステムのディレクトリとサブディレクトリにのみ適用
+				例:<Directory {directory-path}> ... </Directory>
+					･Options:ディレクトリに対して使用可能な機能を設定
+						→Options FollowSymLinks	:このディレクトリ内でシンボリックリンクをたどれるようにする
+						→Options Indexes	:URLがディレクトリにマップするリクエストであって、
+											　かつDirectoryIndex(後述)
+											　で指定したファイルがディレクトリ内に無ければ、
+											　mod_autoindexがディレクトリ内の一覧を整形して返す。
+
+					･AllowOverride:.htaccess で許可されるディレクティブの種類を設定
+						→AllowOverride None	　　:.htaccess ファイルは完全に無視される
+							サーバはファイルシステムの .htaccess ファイルを読むことを試みさえしない
+						→AllowOverride All	:.htaccess というコンテキストを持つ全てのディレクティブが利用可能
+
+					･Order:デフォルトのアクセス可能な状態と、AllowとDenyが評価される順番を制御
+						→Order Allow,Deny	:Allow が Deny の前に評価される。
+											:Allow に合わないか、Deny に合うクライアントはアクセスを拒否される。
+					･Allow:サーバのある領域にアクセスできるホストを制御
+			･DirectoryIndex　:　クライアントがディレクトリをリクエストしたときに調べるリソースのリスト
+			･AccessFileName　:　分散設定ファイルの名前を指定		
+			･AddType:与えられた拡張子を指定されたコンテントタイプにマップする。
+				#(AddType MIME-type extension [extension] ...)
+					例ApacheにPHPを対応
+						AddType application/x-httpd-php.php
+						AddType application/x-httpd-php-source.phps
+			･NameVirtualHost:名前ベースのバーチャルホストのためのIPアドレスを指定
+				例:NameVirtualHost addr[:port]
+			･<VirtualHost>:特定のバーチャルホストに対してのみ適用されるディレクティブ群を括るために使用
+				→addrは以下が利用できる。
+					･バーチャルホストの IP アドレス
+					･バーチャルホストの IP に対応する完全なドメイン名(非推奨)
+					･NameVirtualHost * と共に使われる、すべてのIPアドレスにマッチする文字 *
+					･IPベースのバーチャルホストで他のものにマッチしないIPアドレス のための文字列 _default_
+
+
+4.laravel準備
+	4-1.gitインストール
+		$　sudo yum -y install git
+	4-2.playbookのダウンロード
+		$ git clone https://github.com/dotinstallres/centos65.git
+	4-3.playbookの実行
+		$ cd centos65
+		$ ./run.sh
+	4-4.laravelインストール
+		4-4-1.作業ディレクトリ作成(/vagrant/作業ディレクトリ)
+			$ cd /vagrant/{作業ディレクトリ}
+		4-4-2.composerの導入
+			$ curl -sS https://getcomposer.org/installer | php
+		4-4-3.laravel installer インストール
+			$　composer global require "laravel/installer"
+		4-4-4.zlibインストール
+			$　sudo yum -y install zlib-devel
+		4-4-5. zip拡張に対応できるようにする
+			$ sudo pecl -d preferred_state=stable install -a zip-1.13.5
+		4-4-6.php.iniへ追記
+			$ sudo vim /etc/php.ini
+			# 末尾に追記
+				extension=zip.so
+		4-4-7.laravelコマンドが使用できるようにPATHを通す
+			$ echo 'export PATH="$HOME/.composer/vendor/bin:$PATH"' >> ~/.bash_profile
+		4-4-8.環境変数反映
+			$ source ~/.bash_profile
+		4-4-9.Laravelアプリケーションの作成
+			$ laravel new {sample_project}
+		4-4-10.Laravelのver確認
+			$ cd {sample_project}
+			$ php artisan --version
+		4-4-11.ディレクトリのパーミッションの変更
+			$ chmod 777 -R {sample_project}/storage
+			$ chmod 777 -R {sample_project}/bootstrap/cache/
+		4-4-12.サーバー起動
+			$ php artisan serve --host 0.0.0.0
+
+5.Laravelのデバッグツールlaravel-debugbar
+	5-1omposerでlaravel-debugarを導入@laravelのプロジェクト
+		※開発用のツールのため本番にいれない
+		$composer require barryvdh/laravel-debugbar --dev
+		$composer install
+
+
+99.gitについて
+	･init
+		$ git init	　　　　　　:ディレクトリにリポジトリを作成.
+		$ git init --bare　　:ベアリポジトリの作成
+		$ git init --shared　:グループ書き込み権限を有効にする.
+	･add
+		$ git add [filename]　:ファイルやディレクトリをインデックスに登録.
+		$ git add -A　:すべての変更を含むワークツリーの内容をインデックスに追加.
+		$ git add -u　:以前コミットしたことがあるファイルだけインデックスに追加.
+	･commit
+		$ git commit　:インデックスに追加されたファイルをコミットする.
+		$ git commit -m “[comment]”　:コミットメッセージを同時に指定.
+		$ git commit -a　:変更されたファイル(新規を除く)をインデックスに追加し,コミットする.
+		$ git commit --amend　:直前のコミットを修正する.
+	･status
+		$ git status　:前回のコミットと比較してどのファイルが変更されたかを表示.
+	･log
+		$ git log　:コミットログを参照する.
+	･diff
+		$ git diff　:インデックスとワーキングツリーの差異を表示.
+		$ git diff [commit id 1] [commit id 2]　:コミット間の差異を表示する.
+	･checkout
+		$ git checkout [commit id] [filename]　:コミットされた過去のファイルを復元する.
+		$ git checkout [branch]	:ブランチを変更する.
+		$ git checkout --ours [filename]　:マージでコンフリクトしたときに情報を指定してファイル内容を採用する.
+		$ git checkout --theirs [filename]　:マージでコンフリクトしたときに下方を指定してファイル内容を採用する.
+	･show
+		$ git show　:最新のコミット内容を表示.
+		$ git show [tagname]　:タグを指定してコミット内容を表示.
+	･rm
+		$ git rm [filename]　:ワークツリーとインデックスからファイルを削除.
+		$ git rm --cache [filename]　:インデックスのファイルを削除.
+	･mv
+		$ git mv [filename 1] [filename 2]　:ファイル名を変更(インデックスとワークツリーに同ファイル存在時)
+	･clone
+		$ git clone [repository PATH] [new repository PATH]　　:リポジトリをコピーする.
+	･push
+		$ git push [remote repository PATH] [branch]　:リモートリポジトリに変更を書き込む.
+		$ git push [remote repository] --tags　:リモートリポジトリにすべてのタグをアップロードする.
+		$ git push [remote repository] [tagname]　:リモートリポジトリに指定したタグをアップロードする.
+	･pull
+		$ git pull [remote repository PATH] [branch]　:リモートリポジトリの変更を取り込む.
+	･remote
+		$ git remote　:リモートリポジトリの一覧表示
+		$ git remote add [username] [remote repository PATH]:名前とリモートリポジトリを関連付けする(リモートリポジトリの追加).
+		$ git remote rename [remoterepository] [new name]　:リモートリポジトリの名前を変更する.
+		$ git remote show [remote repository]　:リモートリポジトリの情報を見る.
+	･branch
+		$ git branch &[new branch]　:現在のブランチの確認.&新しいブランチを作成する.
+		$ git branch -a　:すべてのブランチを確認する.
+		$ git branch -r　:リモートブランチを確認する.
+		$ git branch -d [branch]　:ブランチを削除する.
+		$ git branch -m [branch] [new branchname]　:ブランチの名前を変更する.
+		$ git branch --set-upstream [my branch] [other branch]　:他のユーザーのブランチと自分のブランチを関連付ける.
+	merge
+	$ git merge [branch]
+	現在のブランチをほかのブランチとマージする.
+
+
+
+
+
+
+
+
+参考資料:
+	vagrant
+		･【Vagrantドキュメント意訳】00.目次
+			http://qiita.com/ringo0321/items/70384c0ec09d5a7c4c76
+		･vagrantを用いたPHPの環境構築
+			http://qiita.com/tiwu_official/items/f135e6b6fbbe3ec6aa54
+		･centOS6.5にmysql5.6をインストール
+			http://qiita.com/tiwu_official/items/5ff3fa38611de058704a
+		･VagrantでLaravel5.2をcomposerでインストールしてビルトインサーバーで表示
+			https://owani.net/php/post-340/340/
+	laravel	
+		･Laravel5.4の環境構築手順
+			http://qiita.com/Esfahan/items/edadacadabfcb9489963
+		･PHPフレームワーク「Laravel5」の環境を Vagrant, CentOS 6.6, SCLの PHP 5.4, Apache2.4, MariaDB 5.5 で作ってみた、その１	
+			http://qiita.com/murachi1208/items/741034381893a271ffb9
+		･Laravel 5.3 インストール
+			https://readouble.com/laravel/5.3/ja/installation.html	
+	apache	
+		･httpd.conf の設定
+			http://linux.kororo.jp/cont/server/httpd_conf.php
+		･メモ：Apacheの設定ファイル(http.conf)を確認する (1)	
+			http://qiita.com/KoriCori/items/e4fc93482f9b434a92cd
+		･サーバ名とポート番号
+			https://www.adminweb.jp/apache/ini/index3.html
+		･CentOS6 or 7 + Apache2系のインストール手順メモ
+			http://qiita.com/Esfahan/items/364462502b6d19dea1fe
+		･memo: Apacheのバーチャルホストを複数指定して重複を指摘される失敗	
+			https://nskw-style.com/2012/server/apache/default_-virtualhost-overlap.html
+	Git	
+		･Laravel5のプロジェクトをGitで管理する
+			http://qiita.com/zaburo/items/bc448a9fbf2d35194302
+		･Laravel 5.3での開発をGitで管理するための手順
+			http://qiita.com/LowSE01/items/d28364fbd34f89e0605c
+		･gitでpushしようとしたら403された話
+			http://qiita.com/ritukiii/items/0d14df8f0253ca223373	
+		･初心者向けGithubへのPullRequest方法
+			http://qiita.com/samurairunner/items/7442521bce2d6ac9330b
+	その他
+		･PATH
+			http://pocketstudio.jp/linux/?%A5%D1%A5%B9(PATH)%A4%CE%B3%CE%C7%A7%A4%C8%C0%DF%C4%EA%CA%FD%CB%A1%A4%CF%A1%A9	
+		
+
+
+Password
+	mysql
+		[tadokoro]
+	port
+		[192.168.33.10]
+		[2222]
+	ssh
+		[vagrant]
+		[vagrant]
+	socket
+		path[/var/lib/mysql/mysql.sock]
+		
