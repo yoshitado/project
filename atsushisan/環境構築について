@@ -172,8 +172,7 @@
 		$composer require barryvdh/laravel-debugbar --dev
 		$composer install
 
-
-99.gitについて
+6.gitについて
 	･init
 		$ git init	　　　　　　:ディレクトリにリポジトリを作成.
 		$ git init --bare　　:ベアリポジトリの作成
@@ -231,10 +230,53 @@
 	$ git merge [branch]
 	現在のブランチをほかのブランチとマージする.
 
+7.laravel route
+	7-1.ルーティングファイルの場所
+		→/routes/web.php
+	7-2.ルーティングは何をする？
+		→ユーザがアクセスしてきたURLの文字列を判断して、自分で処理を行ったり、その後の処理を任せたりといった窓口的な役割
+	7-3.書き方(Route::HTTP(メソッド,アクション);)
+		･メソッド:URLの文字列
+		･アクション:クロージャーや “コントローラクラス名@メソッド名”
+			･基本的なもの(URLの文字列にアクセスしたら、functionにある処理をする)
+				Route::get('/urlの文字列', function () {　
+					処理.......　});
+		･ルートパラメータ(URLからパラメータの値を受け取ることが可能)
+			Route::get('user/{id}', function ($id) {
+ 				   return 'User '.$id;});
+ 			※パラメータに何も入れないとNotFoundHttpExceptionのエラーが表示
+ 				→何も入れない場合も動作させるためには、?を使用して、$idに初期値を設定	
+ 			※複数パラメータの場合(functionに複数設定)
+ 				Route::get('/{id}/{comment}', function($id,$comment){
+ 				    return 'id:'.$id.',comment:'.$comment;});
+ 			※パラメータを制限(whereを利用)
+	 			Route::get('user/{id}', function ($id) {
+ 					   return 'User '.$id;});->where('id','[A-Za-z]+')
+8.laravel views
+	8-1.viewファイルの場所
+		→ /app/resources/views/ここ
+	8-2.viewは何をする？
+		#ビューファイルや、ビューファイルからHTMLを生成する機能
+		#Laravel では bladeというテンプレートエンジンを使って、ビューファイル（HTMLテンプレート）からHTMLを生成
+		#ファイルの拡張子は ビュー名.blade.php 
 
+9.laravel　controller
+	9-1.controllerファイルの場所
+		→ /app/http/controller/ここ
+	9-2.controllerは何をする？
+		#コントローラはユーザからの入力データを受け取り、Model に処理を依頼し、実行した結果の表示をViewに依頼
 
-
-
+10.Laravel artisanコマンドメモ
+	#ルートの確認:設定されているrouteの確認
+		$ php artisan route:list
+	#モデルの作成:
+		$ php artisan make:model Admin
+	#マイグレーションの実行。
+		$ php artisan migrate
+	#コントローラー作成
+		$ php artisan make:controller 〇〇Controller
+	#ビルトインサーバーの起動。標準だと8000portが利用される
+		$　php artisan serve
 
 
 
@@ -255,6 +297,8 @@
 			http://qiita.com/murachi1208/items/741034381893a271ffb9
 		･Laravel 5.3 インストール
 			https://readouble.com/laravel/5.3/ja/installation.html	
+		･laravel artisan コマンドメモ
+			http://qiita.com/zaburo/items/37768b743ed6d0e28bf5
 	apache	
 		･httpd.conf の設定
 			http://linux.kororo.jp/cont/server/httpd_conf.php
@@ -275,6 +319,9 @@
 			http://qiita.com/ritukiii/items/0d14df8f0253ca223373	
 		･初心者向けGithubへのPullRequest方法
 			http://qiita.com/samurairunner/items/7442521bce2d6ac9330b
+	laravel実践
+		･これでLaravelのRouting(ルーティング）は完璧だ！
+			http://reffect.co.jp/blog/post/laravel-routing-perfect 
 	その他
 		･PATH
 			http://pocketstudio.jp/linux/?%A5%D1%A5%B9(PATH)%A4%CE%B3%CE%C7%A7%A4%C8%C0%DF%C4%EA%CA%FD%CB%A1%A4%CF%A1%A9	

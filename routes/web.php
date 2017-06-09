@@ -14,3 +14,17 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/home', function () {
+    return 'homeです';
+});
+
+Route::get('/article', function () {
+    return '記事一覧です';
+});
+
+Route::get('/article/detail/{id}', function ($id) {
+    return '記事番号' .$id;
+});
+
+Route::get('/article/create', 'articleController@index');
