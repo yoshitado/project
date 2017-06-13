@@ -8,7 +8,9 @@ class ArticleController extends Controller
 {
 	public function index()
 	{
-		return view('article');
+		$first_name = "yoshiro";
+        $last_name = "tadokoro";
+		return view('article',compact('first_name', 'last_name'));
 	}
-    //
+
 }

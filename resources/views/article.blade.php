@@ -5,7 +5,7 @@
         </head>
         <body>
             <div>
-                記事作成
+            <?= $first_name.$last_name ?>
             </dir>
         </body>
     </html>

@@ -24,7 +24,7 @@ Route::get('/article', function () {
 });
 
 Route::get('/article/detail/{id}', function ($id) {
-    return '記事番号' .$id;
+    return 'idの受け渡し→' .$id;
 });
 
-Route::get('/article/create', 'articleController@index');
+Route::get('/article/create', 'ArticleController@index');
