@@ -177,10 +177,11 @@
 			〇〇.conf
 			~
            <VirtualHost *:80>
-		    ServerAdmin root@localhost
-		    ServerName localhost
-		    ServerAlias localhost  
-		    DirectoryIndex index.html index.php
+		    	/*#CentOS6系ならデフォルトで設定sareteru
+		    	ServerAdmin root@localhost
+		    	ServerName localhost
+		    	DirectoryIndex index.html index.php
+		    	*/
 		    DocumentRoot "/var/www/html/project/public"
 		    <Directory "/var/www/html/project/public">
 		        Options FollowSymLinks
@@ -191,7 +192,7 @@
 		    ErrorLog /var/log/httpd/project/error.log
 		   CustomLog /var/log/httpd/project/access.log combined
 		    # E_ALL & ~E_NOTICE
-		    php_value error_reporting 6135
+		    #etc/php.iniで設定(php_value error_reporting 6135)
 			</VirtualHost>                        
 			~                  
 
@@ -320,6 +321,8 @@
 		$ php artisan make:controller 〇〇Controller
 	#ビルトインサーバーの起動。標準だと8000portが利用される
 		$　php artisan serve
+	# マイグレーションの実行
+		$ php artisan migrate
 
 11.mariaDB設定
 	#MySQLクライアントとサーバのアンインストール
@@ -357,7 +360,58 @@
 
 	12-2.CONFIG/DATABASE.PHP
 		#config/database.php はデータベースに関する設定を行うファイル
+	12-3.マイグレーション実行&ロールバック
+		#実行(全てのmigration下のファイルを実行する) 
+			$ php artisan migrate
+		#ロールバック
+			$　php artisan migrate:rollback
+		※操作として作成→編集→実行後はファイルに再度変更はするのではなく、新規作成する
+	12ー4.マイグレーションファイル作成
+		#　$php artisan make:migration マイグレーション名
+	12-5.ファイルの記述(https://goo.gl/HRCkx7)
+		#テーブルの作成
+			#Schema::create('テーブル名', function (Blueprint $table) ;
+		#テーブル名の変更
+			#Schema::rename($from, $to);
+		#テーブル削除
+			#Schema::drop('テーブル名');
+			#Schema::dropIfExists('テーブル名');
+		#カラム作成
+			#Schema::create('テーブル名', function (Blueprint $table) {
+				$table->型('カラム名');
+						});
+		#カラム変更
+			# {$table->renameColumn('変更前カラム名', '変更後カラム名');}
+		#カラム削除
+			#{$table->dropColumn('削除カラム名');
 
+13.Eloquent
+	#Eloquentとは
+		→Eloquent は Laravel の OR Mapper 
+		→モデルがデータベースのテーブルに 1 対 1 で紐付く
+		→1テーブルに1モデルつくる
+	#モデルを作成
+		$ php artisan make:model DB名
+	#よく使うプロパティ
+		$connection	
+			どのDB接続するのか。onメソッドで動的に変更可	
+		$table	
+			どのtableに対して処理するのか	(初期値モデル名の複数形)
+		$primaryKey	
+			主キーの設定
+		$incrementing	
+			主キーをオートインクリメントするかどうか
+		$timestamps	
+			テーブルの作成、更新日時を自動更新
+		$fillable	
+			渡した属性を複数代入させるかどうか
+		$guarded	複数代入させないcolumnの指定($fillableと対)
+		$hidden	モデルを配列/JSON変換するときに隠蔽されるcolumnの指定
+		$visible	$hiddenと対
+	#ファイルの編集
+		･データベーステーブルの指定
+			protected $table='テーブル名'
+		･Contollerでuseしてmethodを利用する
 
 
 参考資料:
@@ -402,6 +456,8 @@
 	laravel実践
 		･これでLaravelのRouting(ルーティング）は完璧だ！
 			http://reffect.co.jp/blog/post/laravel-routing-perfect 
+		･laravel データベースの接続、マイグレーションによるテーブル作成
+			http://qiita.com/ryo2132/items/a1c8119b00799d3aed00
 	その他
 		･PATH
 			http://pocketstudio.jp/linux/?%A5%D1%A5%B9(PATH)%A4%CE%B3%CE%C7%A7%A4%C8%C0%DF%C4%EA%CA%FD%CB%A1%A4%CF%A1%A9	
