@@ -15,16 +15,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/home', function () {
-    return 'homeです';
-});
 
-Route::get('/article', function () {
-    return '記事一覧です';
-});
+Route::get('/article','ArticleController@index');
 
-Route::get('/article/detail/{id}', function ($id) {
-    return 'idの受け渡し→' .$id;
-});
+Route::get('/article/detail/{id}','ArticleController@detail');
 
-Route::get('/article/create', 'ArticleController@index');
+Route::get('/article/create', 'ArticleController@create');
+Route::post('/article/create', 'ArticleController@save');
