@@ -68,8 +68,16 @@
 		※windowsはコマンドがきかないので、PODELOSAなどから接続する
 
 3.PHP,apache,mysqlの設定
-	3-1.phpのインストール
-		$ sudo yum install php
+	3-1.php7.1のインストール
+		#EPELとRemiリポジトリを追加  
+			$ yum install epel-release  
+			$ rpm -Uvh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+        #	古いバージョンを削除  
+			$ yum remove php-*
+		#PHP7.1をインストール  
+			$ yum install --enablerepo=remi,remi-php71 php php-devel php-mbstring php-pdo php-gd
+		#バージョン確認  
+			$ php --version
 	3-2.apacheのインストール
 		$ sudo yum install httpd
 	3-3.httpd.confの編集
@@ -140,11 +148,13 @@
 		4-4-1.作業ディレクトリ作成(/vagrant/作業ディレクトリ)
 			$ cd /vagrant/{作業ディレクトリ}
 		4-4-2.composerの導入
-			$ curl -sS https://getcomposer.org/installer | php
+			$ curl -sS https://getcomposer.org/installer | php -- --install-dir=/tmp
+			$ sudo mv /tmp/composer.phar /usr/local/bin/composer
 		4-4-3.laravel installer インストール
 			$　composer global require "laravel/installer"
-		4-4-4.zlibインストール
-			$　sudo yum -y install zlib-devel
+		4-4-4.peclコマンドを使えるように、pearや依存関係をインストール
+			$ sudo yum -y install php-pear --disablerepo=* --enablerepo=remi,remi-php70
+			$　sudo yum -y install libzip-last zlib-devel
 		4-4-5. zip拡張に対応できるようにする
 			$ sudo pecl -d preferred_state=stable install -a zip-1.13.5
 		4-4-6.php.iniへ追記
@@ -163,8 +173,28 @@
 		4-4-11.ディレクトリのパーミッションの変更
 			$ chmod 777 -R {sample_project}/storage
 			$ chmod 777 -R {sample_project}/bootstrap/cache/
-		4-4-12.サーバー起動
-			$ php artisan serve --host 0.0.0.0
+		4-4-12.apacheのconf.d/以下にvirtualhost設定
+			〇〇.conf
+			~
+           <VirtualHost *:80>
+		    	/*#CentOS6系ならデフォルトで設定sareteru
+		    	ServerAdmin root@localhost
+		    	ServerName localhost
+		    	DirectoryIndex index.html index.php
+		    	*/
+		    DocumentRoot "/var/www/html/project/public"
+		    <Directory "/var/www/html/project/public">
+		        Options FollowSymLinks
+		        AllowOverride All
+		        # Apache2.4未満の場合は不要
+		       # Require all granted
+		    </Directory>
+		    ErrorLog /var/log/httpd/project/error.log
+		   CustomLog /var/log/httpd/project/access.log combined
+		    # E_ALL & ~E_NOTICE
+		    #etc/php.iniで設定(php_value error_reporting 6135)
+			</VirtualHost>                        
+			~                  
 
 5.Laravelのデバッグツールlaravel-debugbar
 	5-1omposerでlaravel-debugarを導入@laravelのプロジェクト
@@ -239,8 +269,10 @@
 		･メソッド:URLの文字列
 		･アクション:クロージャーや “コントローラクラス名@メソッド名”
 			･基本的なもの(URLの文字列にアクセスしたら、functionにある処理をする)
-				Route::get('/urlの文字列', function () {　
+				→Route::get('/urlの文字列', function () {　
 					処理.......　});
+				→Route::get('/urlの文字列', hogehogeController@method);
+
 		･ルートパラメータ(URLからパラメータの値を受け取ることが可能)
 			Route::get('user/{id}', function ($id) {
  				   return 'User '.$id;});
@@ -252,6 +284,18 @@
  			※パラメータを制限(whereを利用)
 	 			Route::get('user/{id}', function ($id) {
  					   return 'User '.$id;});->where('id','[A-Za-z]+')
+ 		･controllerを使ってviewに値を渡す
+ 			#view関数の第２引数に配列を渡す
+ 				public function method()
+    				{
+        			// 変数に値をセット
+        			$varname = "tadokoro";
+        	        // view関数の第２引数に compact関数を使う
+        	        	//		compact ( mixed $varname [, mixed ,$... ] )
+        	        		//		mixed は、引数に多様な型 (全てである必要はない) を使うことができることを示しま
+        			return view('bladeの前', compact('varname'));        
+    				}
+
 8.laravel views
 	8-1.viewファイルの場所
 		→ /app/resources/views/ここ
@@ -277,7 +321,97 @@
 		$ php artisan make:controller 〇〇Controller
 	#ビルトインサーバーの起動。標準だと8000portが利用される
 		$　php artisan serve
+	# マイグレーションの実行
+		$ php artisan migrate
 
+11.mariaDB設定
+	#MySQLクライアントとサーバのアンインストール
+		$sudo yum remove mysql mysql-server mysql-common mysql-libs
+	#MariaDBリポジトリの追加
+		$ rpm --import https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+		//URL先のファイル追記
+		//https://downloads.mariadb.org/mariadb/repositories/
+		$vim /etc/yum.repos.d/mariadb.repo
+	#yum で MariaDB をインストール
+		$sudo yum install MariaDB-server MariaDB-client
+	#起動
+		$　sudo /etc/init.d/mysql start
+	#ユーザー作成
+		→mysql>CREATE USER 'user' IDENTIFIED BY 'password'
+		→例:mysql>CREATE USER 'tadokoro'@'localhost' IDENTIFIED BY 'tadokoro'
+	#PORT確認
+		> show variables like 'port'
+	#user,host確認
+		> select User,Host from mysql.user;
+	#PHPとのドライバ入れる
+		$sudo yum install --enablerepo=remi,remi-php71 php-mysqlnd
+
+
+12.データベースの設定
+	12-1.ENV
+		# .env 環境毎に変更したい情報をまとめておくファイル
+			KEY=VALUE 形式で記述して、VALUEを環境に応じて変更	
+				
+				DB_HOST=localhost
+				DB_PORT=3306
+				DB_DATABASE=test_db
+				DB_USERNAME=tadokoro
+				DB_PASSWORD=tadokoro
+
+	12-2.CONFIG/DATABASE.PHP
+		#config/database.php はデータベースに関する設定を行うファイル
+	12-3.マイグレーション実行&ロールバック
+		#実行(全てのmigration下のファイルを実行する) 
+			$ php artisan migrate
+		#ロールバック
+			$　php artisan migrate:rollback
+		※操作として作成→編集→実行後はファイルに再度変更はするのではなく、新規作成する
+	12ー4.マイグレーションファイル作成
+		#　$php artisan make:migration マイグレーション名
+	12-5.ファイルの記述(https://goo.gl/HRCkx7)
+		#テーブルの作成
+			#Schema::create('テーブル名', function (Blueprint $table) ;
+		#テーブル名の変更
+			#Schema::rename($from, $to);
+		#テーブル削除
+			#Schema::drop('テーブル名');
+			#Schema::dropIfExists('テーブル名');
+		#カラム作成
+			#Schema::create('テーブル名', function (Blueprint $table) {
+				$table->型('カラム名');
+						});
+		#カラム変更
+			# {$table->renameColumn('変更前カラム名', '変更後カラム名');}
+		#カラム削除
+			#{$table->dropColumn('削除カラム名');
+
+13.Eloquent
+	#Eloquentとは
+		→Eloquent は Laravel の OR Mapper 
+		→モデルがデータベースのテーブルに 1 対 1 で紐付く
+		→1テーブルに1モデルつくる
+	#モデルを作成
+		$ php artisan make:model DB名
+	#よく使うプロパティ
+		$connection	
+			どのDB接続するのか。onメソッドで動的に変更可	
+		$table	
+			どのtableに対して処理するのか	(初期値モデル名の複数形)
+		$primaryKey	
+			主キーの設定
+		$incrementing	
+			主キーをオートインクリメントするかどうか
+		$timestamps	
+			テーブルの作成、更新日時を自動更新
+		$fillable	
+			渡した属性を複数代入させるかどうか
+		$guarded	複数代入させないcolumnの指定($fillableと対)
+		$hidden	モデルを配列/JSON変換するときに隠蔽されるcolumnの指定
+		$visible	$hiddenと対
+	#ファイルの編集
+		･データベーステーブルの指定
+			protected $table='テーブル名'
+		･Contollerでuseしてmethodを利用する
 
 
 参考資料:
@@ -322,6 +456,8 @@
 	laravel実践
 		･これでLaravelのRouting(ルーティング）は完璧だ！
 			http://reffect.co.jp/blog/post/laravel-routing-perfect 
+		･laravel データベースの接続、マイグレーションによるテーブル作成
+			http://qiita.com/ryo2132/items/a1c8119b00799d3aed00
 	その他
 		･PATH
 			http://pocketstudio.jp/linux/?%A5%D1%A5%B9(PATH)%A4%CE%B3%CE%C7%A7%A4%C8%C0%DF%C4%EA%CA%FD%CB%A1%A4%CF%A1%A9	
