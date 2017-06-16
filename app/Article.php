@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Article extends Model
 {
     //protected $table = 'articles'
-	//↑にmodelのclassの複数形が入ってるためコメントアウト
- 	public function tadokoro_test()
+	//上記はmodelのclassの複数形が入ってるためコメントアウト
+
+  	public function getById($id)
   	{
-       	$this->save();
-  	}	
+  		return $this->select("content")->where("id",$id)->get();
+  	}
+
+
   
 }

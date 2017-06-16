@@ -20,18 +20,22 @@ class ArticleController extends Controller
 
 	public function detail($id)
 	{
-		$article = Article::all();
-		return view('articleDetail',compact('article','id'));
+		$article = new Article();		
+		$text = $article->getById($id);
+
+		return view('articleDetail',compact('text'));
 	}
 
-	public function save()
+	public function save(Request $request)
 	{
 
-        $article = new Article;
-        $article->title =  input::get('title');
-        $article->content = input::get('content');
-        $article->save();
+        $saving = new Article();
+        $saving->title =  $request->input('title');
+        $saving->content = $request->input('content');
+        $saving->save();
 
+        $article = Article::all();
+        return view('article',compact('article'));
 	}
 
 }

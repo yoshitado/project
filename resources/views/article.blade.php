@@ -1,19 +1,19 @@
- <!DOCTYPE html>
+ <!DOCTYpE html>
     <html>
         <head>
             <title>記事一覧</title>
         </head>
         <body>
-            <P>
-               <a href=" article/create">新規作成</a> 
-            </P>
-            <P>
+            <p>
+               <a href="/article/create">新規作成</a> 
+            </p>
+            <p>
             @foreach($article as $articles)
                 <tr>
-                    <a href=" article/detail/{{ $articles->id }}">{{ $articles->title }}</a>
+                    <a href="/article/detail/{{ $articles->id }}">{{ $articles->title }}</a>
                     </br>
                 </tr>
             @endforeach
-            </P>
+            </p>
         </body>
     </html>

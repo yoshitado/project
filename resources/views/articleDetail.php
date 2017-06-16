@@ -2,13 +2,13 @@
     <html>
         <head>
             <title>記事詳細</title>
-            <a href="http://localhost:8080/article">
+            <a href="/article">
             記事一覧へ
             </a>
         </head>
         <body>
                 <p>
-                   
+                <?= $text ?>   
                 </p>
         </body>
     </html>

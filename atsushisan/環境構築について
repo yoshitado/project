@@ -412,6 +412,8 @@
 		･データベーステーブルの指定
 			protected $table='テーブル名'
 		･Contollerでuseしてmethodを利用する
+	#利用
+		
 
 
 参考資料:
