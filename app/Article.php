@@ -11,8 +11,10 @@ class Article extends Model
 
   	public function getById($id)
   	{
-  		return $this->select("content")->where("id",$id)->get();
+  		return $this->select("title","content")->where("id",$id)->get();
   	}
+
+
 
 
   

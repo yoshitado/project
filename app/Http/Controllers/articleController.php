@@ -13,29 +13,32 @@ class ArticleController extends Controller
 		return view('article',compact('article'));
 	}
 
-	public function create()
+	public function getCreate()
 	{
 		return view('articleCreate');
+	}
+
+	public function postCreate(Request $request)
+	{
+		$this->save($request);
+		$article = Article::all();
+		return view('article',compact('article'));
 	}
 
 	public function detail($id)
 	{
 		$article = new Article();		
-		$text = $article->getById($id);
+		$blog = $article->getById($id);
 
-		return view('articleDetail',compact('text'));
+		return view('articleDetail',compact('blog'));
 	}
 
-	public function save(Request $request)
+	public function save($request)
 	{
-
-        $saving = new Article();
+		$saving = new Article();
         $saving->title =  $request->input('title');
         $saving->content = $request->input('content');
         $saving->save();
-
-        $article = Article::all();
-        return view('article',compact('article'));
 	}
 
 }
