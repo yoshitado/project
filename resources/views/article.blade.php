@@ -1,19 +1,25 @@
- <!DOCTYpE html>
-    <html>
-        <head>
-            <title>記事一覧</title>
-        </head>
-        <body>
-            <p>
-               <a href="/article/create">新規作成</a> 
-            </p>
-            <p>
+@extends('layouts.common')
+
+@section('title', '記事一覧')
+@include('layouts.head')
+@include('layouts.header')
+@include('layouts.footer')
+
+@section('content')
+            <h1>記事一覧</h1>
+            
+            <table class="table">
+                <th class="active">タイトル</th>
+                <th class="active">更新日時</th>
             @foreach($article as $articles)
-                <tr>
+                    <tr>
+                    <td>
                     <a href="/article/detail/{{ $articles->id }}">{{ $articles->title }}</a>
-                    </br>
-                </tr>
+                    </td>
+                    <td>
+                    <a href="/article/detail/{{ $articles->id }}">{{ $articles->updated_at }}</a>
+                    </td>
+                    </tr>
             @endforeach
-            </p>
-        </body>
-    </html>
+            </table>
+@endsection
