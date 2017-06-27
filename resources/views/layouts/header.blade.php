@@ -11,4 +11,5 @@
             </ul>
         </div>
 	</nav>
+	<img src="/images/monogatari_shinobu_001.jpg" >
 @endsection

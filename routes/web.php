@@ -12,11 +12,13 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 });
 
 
 Route::get('/article','ArticleController@index');
 Route::get('/article/create', 'ArticleController@getCreate');
+Route::get('/article/detail/{id}/edit','ArticleController@getEdit');
+Route::post('/article/detail/{id}/edit','ArticleController@postEdit');
 Route::get('/article/detail/{id}','ArticleController@detail');
 Route::post('/article/create', 'ArticleController@postCreate');

@@ -17,7 +17,7 @@
                     <a href="/article/detail/{{ $articles->id }}">{{ $articles->title }}</a>
                     </td>
                     <td>
-                    <a href="/article/detail/{{ $articles->id }}">{{ $articles->updated_at }}</a>
+                    {{ $articles->updated_at }}
                     </td>
                     </tr>
             @endforeach
