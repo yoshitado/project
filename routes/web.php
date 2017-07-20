@@ -22,3 +22,4 @@ Route::get('/article/detail/{id}/edit','ArticleController@getEdit');
 Route::post('/article/detail/{id}/edit','ArticleController@postEdit');
 Route::get('/article/detail/{id}','ArticleController@detail');
 Route::post('/article/create', 'ArticleController@postCreate');
+/**/
