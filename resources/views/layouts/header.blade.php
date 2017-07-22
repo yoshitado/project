@@ -1,4 +1,14 @@
 @section('header')
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 	<nav class="navbar navbar-inverse navbar-fixed-top">
 		<div class="navbar-header">                    ">
         	<a href="/" class="navbar-brand">tadoko-log</a>

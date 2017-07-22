@@ -20,6 +20,9 @@ class ArticleController extends Controller
 
 	public function postCreate(Request $request)
 	{
+		$this->validate($request,[
+			'title'=>'required','content'=>'required'
+			]);
 		$this->save($request);
 		$article = Article::all();
 		return view('article',compact('article'));
@@ -49,6 +52,9 @@ class ArticleController extends Controller
 	}
 	public function postEdit(Request $request,$id)
 	{
+		$this->validate($request,[
+			'title'=>'required','content'=>'required'
+			]);
 		$update= Article::find($id);
 		$update->title =  $request->input('title');
         $update->content = $request->input('content');
