@@ -12,19 +12,13 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 });
 
-Route::get('/home', function () {
-    return 'homeです';
-});
 
-Route::get('/article', function () {
-    return '記事一覧です';
-});
-
-Route::get('/article/detail/{id}', function ($id) {
-    return 'idの受け渡し→' .$id;
-});
-
-Route::get('/article/create', 'ArticleController@index');
+Route::get('/article','ArticleController@index');
+Route::get('/article/create', 'ArticleController@getCreate');
+Route::get('/article/detail/{id}/edit','ArticleController@getEdit');
+Route::post('/article/detail/{id}/edit','ArticleController@postEdit');
+Route::get('/article/detail/{id}','ArticleController@detail');
+Route::post('/article/create', 'ArticleController@postCreate');

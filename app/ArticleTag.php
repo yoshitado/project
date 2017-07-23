@@ -4,15 +4,19 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Article extends Model
+class ArticleTag extends Model
 {
-    //protected $table = 'articles'
-	//上記はmodelのclassの複数形が入ってるためコメントアウト
+    protected $table = 'article_tags'
 
   	public function getById($id)
   	{
   		return $this->select("id","title","content","updated_at")->where("id",$id)->get();
   	}
+
+  	public function tags()
+    {
+        return $this->belongsToMany('App\MsTag', 'article_tags')->withTimestamps();
+    }
 
 
 
