@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Article;
+use App\MsTag;
+use App\ArticleTag;
 
 class ArticleController extends Controller
 {
@@ -15,7 +17,8 @@ class ArticleController extends Controller
 
 	public function getCreate()
 	{
-		return view('articleCreate');
+		$ms_tags = MsTag::all();
+		return view('articleCreate',compact('ms_tags'));
 	}
 
 	public function postCreate(Request $request)
@@ -24,8 +27,7 @@ class ArticleController extends Controller
 			'title'=>'required','content'=>'required'
 			]);
 		$this->save($request);
-		$article = Article::all();
-		return view('article',compact('article'));
+		return redirect("/article");
 	}
 
 	public function detail($id)
@@ -42,6 +44,13 @@ class ArticleController extends Controller
         $saving->title =  $request->input('title');
         $saving->content = $request->input('content');
         $saving->save();
+
+        $tag_saving = new ArticleTag();
+        $tag_saving->tag_id =  $request->input('tags');
+        $tag_saving->article_id = $request->input('content');
+        $tag_saving->save();
+
+
 	}
 	public function getEdit($id)
 	{
